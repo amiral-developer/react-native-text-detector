@@ -8,4 +8,11 @@
 @interface RNTextDetector : NSObject <RCTBridgeModule>
 
 @end
+
+@interface RNTextDetectorOptions : NSObject
+ 
+@property NSString *whiteList;
+@property NSString *blackList;
+ 
+@end
   

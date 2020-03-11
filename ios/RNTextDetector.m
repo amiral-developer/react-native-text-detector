@@ -9,7 +9,6 @@
 
 @implementation RNTextDetector
 
-
 - (dispatch_queue_t)methodQueue
 {
     return dispatch_get_main_queue();
@@ -18,16 +17,17 @@ RCT_EXPORT_MODULE()
 
 static NSString *const detectionNoResultsMessage = @"Something went wrong";
 
-RCT_REMAP_METHOD(detectFromUri, detectFromUri:(NSString *)imagePath resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject) {
-    if (!imagePath) {
-        resolve(@NO);
-        return;
-    }
+RCT_EXPORT_METHOD(recognize:(nonnull NSString*)path
+                  language:(nonnull NSString*)language
+                  whiteList:(nullable NSString*)whiteList
+                  blackList:(nullable NSString*)blackList
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject) {
     
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
         VNDetectTextRectanglesRequest *textReq = [VNDetectTextRectanglesRequest new];
         NSDictionary *d = [[NSDictionary alloc] init];
-        NSData *imageData = [NSData dataWithContentsOfURL:[NSURL URLWithString:imagePath]];
+        NSData *imageData = [NSData dataWithContentsOfURL:[NSURL URLWithString:path]];
         UIImage *image = [UIImage imageWithData:imageData];
         
         if (!image) {
@@ -53,9 +53,12 @@ RCT_REMAP_METHOD(detectFromUri, detectFromUri:(NSString *)imagePath resolver:(RC
             return;
         }
         
-        
-        G8Tesseract *tesseract = [[G8Tesseract alloc] initWithLanguage:@"eng"];
+        G8Tesseract *tesseract = [[G8Tesseract alloc] initWithLanguage:language];
+
         tesseract.delegate = self;
+        tesseract.charWhitelist = whiteList;
+        tesseract.charBlacklist = blackList;
+        
         [tesseract setImage:image];
         CGRect boundingBox;
         CGSize size;
